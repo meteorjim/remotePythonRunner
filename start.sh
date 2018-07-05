@@ -1,0 +1,1 @@
+nohup python -u WebServer.py &
