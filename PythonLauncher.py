@@ -53,7 +53,7 @@ def startModule():
     if isSynch == "false":
         newThread = PythonRunner(module, parameters)
         newThread.start()
-        result = '{"result":0,"note":"异步发送中，请稍后查看结果"}'
+        result = '{"result":0,"note":"sending Asynchronously, please check the results later"}'
     else:
         result = module.run(parameters)
     return result
