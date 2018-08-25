@@ -2,6 +2,7 @@
 import json
 import os
 import threading
+import logging
 from imp import load_source
 from flask import Flask, request as fRequest
 
@@ -40,15 +41,15 @@ def startModule():
     if fRequest.json == {}:
         return 'using templete: {"cmd":"#module name which lays in plugins folder#","params":[#List:module need use#],"isSynch":"#defult true,unless using false#"}"}'
     # Detect modules in pulgins folder which 
-    print "Somebody calling in with" + str(fRequest.json)
+    logging.info ("Somebody calling in with %s" ,str(fRequest.json))
     moduleName = fRequest.json.get('cmd')
     parameters = fRequest.json.get('params')
     isSynch = str(fRequest.json.get('isSynch'))
     try:
         modulePath = './plugins/'+moduleName+'.py'
         module = load_source(moduleName, modulePath)
-    except Exception, ex:
-        print ex
+    except Exception as ex:
+        logging.error(ex)
         return '{"result":9,"note":"moduel not exist"}'
     if isSynch == "false":
         newThread = PythonRunner(module, parameters)
@@ -60,4 +61,6 @@ def startModule():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(
+        level=logging.INFO, format='%(asctime)s [%(levelname)s]\t[%(filename)s:%(lineno)d]: %(message)s')
     app.run(host='0.0.0.0', port=12580)
