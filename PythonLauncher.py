@@ -12,6 +12,7 @@ class PythonRunner(threading.Thread):
     'Python excute class,using new thread to excute python module.
     TODO: Adding thread name to control thread numbers.
     '''
+
     def __init__(self, importModule, parameters):
         threading.Thread.__init__(self)
         self.importModule = importModule
@@ -40,8 +41,8 @@ def getHelp():
 def startModule():
     if fRequest.json == {}:
         return 'using templete: {"cmd":"#module name which lays in plugins folder#","params":[#List:module need use#],"isSynch":"#defult true,unless using false#"}"}'
-    # Detect modules in pulgins folder which 
-    logging.info ("Somebody calling in with %s" ,str(fRequest.json))
+    # Detect modules in pulgins folder which
+    logging.info("Somebody calling in with %s", str(fRequest.json))
     moduleName = fRequest.json.get('cmd')
     parameters = fRequest.json.get('params')
     isSynch = str(fRequest.json.get('isSynch'))
