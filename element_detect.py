@@ -6,13 +6,13 @@ import logging
 from time import sleep
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s]\t[%(filename)s:%(lineno)d]: %(message)s')
-driver = webdriver.PhantomJS(executable_path='/Users/jim/Downloads/phantomjs/bin/phantomjs')
+driver = webdriver.PhantomJS(executable_path='E:\\phantomjs-2.1.1-windows\\bin\\phantomjs.exe')
 # driver = webdriver.Chrome(executable_path='/Users/jim/Downloads/phantomjs/bin/chromedriver')
 driver.set_window_size(1920,1080)
 
 
 def get_absolute_xpath(element):
-    with open('selenium_plus/xpath.js','r') as jsfile:
+    with open('xpath.js','r') as jsfile:
         xpath_script = jsfile.read()
     return driver.execute_script(xpath_script, element)
 
@@ -43,14 +43,16 @@ if __name__ == '__main__':
     for element in all_elements :
         try:
             if element.is_displayed():
-                # print(get_absolute_xpath(element))
-                high_light_element(element)
+                xpath = get_absolute_xpath(element)
+                print(driver.find_element_by_xpath(xpath).text)
+                if('注册' in driver.find_element_by_xpath(xpath).text):
+                    logging.info(xpath)
+                    high_light_element(driver.find_element_by_xpath(xpath))
                 displayed_elements.append(element)
-                # print(get_absolute_xpath(element))
         except Exception as exception:
             logging.error('this element has no longer exist:%s',element)
+            logging.error(exception)
             continue
-            # logging.error(exception)
     logging.info('\nall_element is %s\ninteractable element is %s',len(all_elements),len(displayed_elements))
     driver.save_screenshot('screeshot.png')
     logging.info('done')
