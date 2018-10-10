@@ -1,60 +1,76 @@
 from selenium import webdriver
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as excon
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 import logging
 from time import sleep
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s]\t[%(filename)s:%(lineno)d]: %(message)s')
-driver = webdriver.PhantomJS(executable_path='E:\\phantomjs-2.1.1-windows\\bin\\phantomjs.exe')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s [%(levelname)s]\t[%(filename)s:%(lineno)d]: %(message)s')
+# driver = webdriver.PhantomJS(executable_path='E:\\phantomjs-2.1.1-windows\\bin\\phantomjs.exe')
+driver = webdriver.PhantomJS(
+    executable_path='/Users/jim/Downloads/phantomjs/bin/phantomjs')
 # driver = webdriver.Chrome(executable_path='/Users/jim/Downloads/phantomjs/bin/chromedriver')
-driver.set_window_size(1920,1080)
+driver.set_window_size(1920, 1080)
 
 
 def get_absolute_xpath(element):
-    with open('xpath.js','r') as jsfile:
+    with open('xpath.js', 'r') as jsfile:
         xpath_script = jsfile.read()
     return driver.execute_script(xpath_script, element)
 
 
 def high_light_element(element, background='yellow', border='green'):
-    driver.execute_script("arguments[0].setAttribute('style',arguments[1]);",element, "background:%s ;border:4px solid %s;" % (background, border))
-    # driver.execute_script("arguments[0].setAttribute('style',arguments[1]);",element, "border:1px solid %s;"%(border))
+    driver.execute_script("arguments[0].setAttribute('style',arguments[1]);",
+                          element, "background:%s ;border:4px solid %s;" % (background, border))
+
+
+class AttributesElement(WebElement):
+    def __init__(self, element, element_type='div'):
+        self.element = element
+        self.xpath = self._get_absolute_xpath()
+        self.element_type = element_type
+        self.element_id = self._get_element_id()
+        self.element_class = self._get_element_class()
+
+    def _get_absolute_xpath(self):
+        with open('xpath.js', 'r') as jsfile:
+            xpath_script = jsfile.read()
+        return driver.execute_script(xpath_script, self.element)
+
+    def _get_element_id(self):
+        return driver.execute_script('return arguments[0].getAttribute("id")', self.element)
+
+    def _get_element_class(self):
+        return driver.execute_script('return arguments[0].getAttribute("class")', self.element)
+
+    def get_parent(self):
+        returnElement = driver.execute_script(
+            'return arguments[0].parentElement', self.element)
+        xpath_nodes = str.split(self.xpath, '/')
+        return AttributesElement(returnElement, xpath_nodes[len(xpath_nodes)-2])
+
+    def get_children(self):
+        try:
+            return driver.execute_script('return arguments[0].children', self.element)
+        except Exception as ex:
+            logging.error('no children found:%s', ex)
+            return None
+
+    def get_element(self):
+        return self.element
 
 
 if __name__ == '__main__':
     logging.info('start get address')
-    # driver.get('https://blog.csdn.net/zwq912318834/article/details/79262007')
     driver.get('https://login.taobao.com/member/login.jhtml')
-    # driver.get('https://www.taobao.com/')
-    logging.info('start getting xpath')
-    all_elements = driver.find_elements_by_xpath("//a")
-    all_elements.extend(driver.find_elements_by_xpath("//a/*"))
-    # all_elements.extend(driver.find_elements_by_xpath("//input"))
-    # all_elements.extend(driver.find_elements_by_xpath("//input/*"))
-    # all_elements.extend(driver.find_elements_by_xpath("//button"))
-    # all_elements.extend(driver.find_elements_by_xpath("//button/*"))
-    # all_elements.extend(driver.find_elements_by_xpath("//img"))
-    # all_elements.extend(driver.find_elements_by_xpath("//img/*"))
-    # all_elements.extend(driver.find_elements_by_xpath("//image"))
-    # all_elements.extend(driver.find_elements_by_xpath("//image/*"))
-    displayed_elements = []
-    logging.info('proccessing!!!!!')
-    for element in all_elements :
-        try:
-            if element.is_displayed():
-                xpath = get_absolute_xpath(element)
-                print(driver.find_element_by_xpath(xpath).text)
-                if('注册' in driver.find_element_by_xpath(xpath).text):
-                    logging.info(xpath)
-                    high_light_element(driver.find_element_by_xpath(xpath))
-                displayed_elements.append(element)
-        except Exception as exception:
-            logging.error('this element has no longer exist:%s',element)
-            logging.error(exception)
-            continue
-    logging.info('\nall_element is %s\ninteractable element is %s',len(all_elements),len(displayed_elements))
-    driver.save_screenshot('screeshot.png')
-    logging.info('done')
+    aa = driver.find_elements_by_xpath('//a')
+    bb = []
+    for a in aa:
+        b = AttributesElement(a, 'link')
+        # print(b.get_parent().xpath)
+        logging.info(b.get_parent().element_type)
+        bb.append(b)
     driver.stop_client()
     driver.close()
